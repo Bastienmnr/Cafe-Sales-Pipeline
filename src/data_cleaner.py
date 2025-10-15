@@ -1,9 +1,29 @@
+
 import pandas as pd
 import numpy as np
 import re
 from dateutil import parser
 
 class DataCleaner:
+    def handle_unknowns(self, critical_cols=None, non_critical_impute=None):
+        """
+        Supprime les lignes où les colonnes critiques sont 'Unknown' ou vides.
+        Impute les colonnes non critiques avec une valeur par défaut ou le mode.
+        critical_cols: liste de colonnes à considérer comme critiques (ex: ['Item', 'Total Spent'])
+        non_critical_impute: dict {col: valeur ou 'mode'} pour imputation
+        """
+        if critical_cols:
+            for col in critical_cols:
+                self.df = self.df[(self.df[col].notna()) & (self.df[col] != 'Unknown') & (self.df[col] != '')]
+        if non_critical_impute:
+            for col, val in non_critical_impute.items():
+                if val == 'mode':
+                    mode_val = self.df[col][self.df[col] != 'Unknown'].mode()
+                    if not mode_val.empty:
+                        self.df[col] = self.df[col].replace('Unknown', mode_val[0])
+                else:
+                    self.df[col] = self.df[col].replace('Unknown', val)
+        return self.df
     def __init__(self, df):
         self.df = df.copy()
 

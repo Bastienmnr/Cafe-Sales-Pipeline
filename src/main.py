@@ -12,12 +12,12 @@ PRICE_COL = 'Price Per Unit'
 QTY_COL = 'Quantity'
 TOTAL_COL = 'Total Spent'
 ITEM_COL = 'Item'
-CAT_COL = 'Item'  # On considère Item comme catégorie produit
+CAT_COL = 'Item' 
 PAYMENT_COL = 'Payment Method'
 LOCATION_COL = 'Location'
 
-# Catégories valides (à adapter si besoin)
-VALID_ITEMS = ['Coffee', 'Cake', 'Cookie', 'Salad', 'Smoothie', 'Sandwich']
+# Catégories valides
+VALID_ITEMS = ['Coffee', 'Cake', 'Cookie', 'Salad', 'Smoothie', 'Sandwich', 'Juice', 'Tea']
 VALID_PAYMENTS = ['Credit Card', 'Cash', 'Digital Wallet']
 VALID_LOCATIONS = ['Takeaway', 'In-Store']
 
@@ -31,10 +31,10 @@ if __name__ == "__main__":
     df[QTY_COL] = pd.to_numeric(df[QTY_COL], errors='coerce')
     df[TOTAL_COL] = pd.to_numeric(df[TOTAL_COL], errors='coerce')
 
-    # Nettoyage
+    # Nettoyage dupliats
     cleaner = DataCleaner(df)
     df = cleaner.remove_duplicates()
-    # Valeurs manquantes :
+    # Valeurs manquantes
     missing_strategies = {
         ITEM_COL: 'Unknown',
         QTY_COL: df[QTY_COL].mode()[0] if df[QTY_COL].notna().any() else 1,
@@ -58,6 +58,13 @@ if __name__ == "__main__":
     # Correction des erreurs dans Total Spent (ex: "ERROR")
     df[TOTAL_COL] = pd.to_numeric(df[TOTAL_COL], errors='coerce')
     df[TOTAL_COL] = (df[PRICE_COL] * df[QTY_COL]).round(2)
+
+    # Nettoyage final : suppression des lignes critiques et imputation des non-critiques
+    df = cleaner.handle_unknowns(
+        critical_cols=[ITEM_COL, TOTAL_COL, DATE_COL],
+        non_critical_impute={LOCATION_COL: 'Non renseigné', PAYMENT_COL: 'mode'}
+    )
+
     # Sauvegarde
     df.to_csv(CLEAN_PATH, index=False)
     print(f"Données nettoyées sauvegardées dans {CLEAN_PATH}")
