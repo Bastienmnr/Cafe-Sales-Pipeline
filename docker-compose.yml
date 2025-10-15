@@ -1,0 +1,20 @@
+version: '3.8'
+services:
+  pipeline-runner:
+    build: .
+    container_name: cafe-pipeline
+    volumes:
+      - ./data:/app/data
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: python src/main.py
+
+  test-runner:
+    build: .
+    container_name: cafe-tests
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./data:/app/data
+    command: pytest --cov=src tests/
+    restart: "no"
